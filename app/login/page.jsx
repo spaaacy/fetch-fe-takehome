@@ -1,14 +1,11 @@
-import Footer from "@/components/Footer";
-import NavBar from "@/components/NavBar";
+import Login from "@/components/Login";
+
+export const metadata = {
+  title: "Login | Fetch Dogs"
+}
 
 const Page = () => {
-  return (
-    <div className="flex flex-col min-h-screen">
-      <NavBar />
-      <main></main>
-      <Footer />
-    </div>
-  );
+  return <Login />;
 };
 
 export default Page;

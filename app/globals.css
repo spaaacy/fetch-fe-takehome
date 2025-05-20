@@ -24,6 +24,10 @@
     padding-left: 2rem;
     padding-right: 2rem;
   }
+
+  button {
+    @apply cursor-pointer;
+  }
 }
 
 @theme inline {
