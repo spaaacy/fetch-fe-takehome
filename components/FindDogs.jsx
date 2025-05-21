@@ -8,8 +8,20 @@ import toast, { Toaster } from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import Loader from "./Loader";
 import Image from "next/image";
-import { ArrowDown, ArrowLeftCircle, ArrowRightCircle, ArrowUp, Heart, Trash2 } from "lucide-react";
+import {
+  ArrowDown,
+  ArrowLeftCircle,
+  ArrowRightCircle,
+  ArrowUp,
+  Bone,
+  Calendar,
+  Dog,
+  Heart,
+  MapPin,
+  Trash2,
+} from "lucide-react";
 import FadeIn from "./FadeIn";
+import capitalizeWords from "@/utils/capitalizeWords";
 
 const FindDogs = () => {
   const { loggedIn, user, loading: authLoading } = useAuth();
@@ -26,6 +38,8 @@ const FindDogs = () => {
   const [showPrev, setShowPrev] = useState();
   const [favorite, setFavorite] = useState([]);
   const [match, setMatch] = useState();
+  const [locations, setLocations] = useState();
+  const [showFavorites, setShowFavorites] = useState(false);
 
   // Inputs
   const [zipInput, setZipInput] = useState("");
@@ -96,10 +110,29 @@ const FindDogs = () => {
     }
   };
 
+  const fetchLocations = async (zipCodes) => {
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/locations`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(zipCodes),
+        credentials: "include",
+      });
+      if (response.ok) {
+        const locations = await response.json();
+        setLocations(locations);
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("Oops, something went wrong!");
+    }
+  };
+
   const fetchDogs = async (isPrevPage) => {
     try {
       const searchURL = `${process.env.NEXT_PUBLIC_BACKEND_URL}${isPrevPage ? prevPage.current : nextPage.current}`;
-      console.log(searchURL);
       let response = await fetch(searchURL, {
         credentials: "include",
       });
@@ -120,7 +153,36 @@ const FindDogs = () => {
         if (response.ok) {
           const dogs = await response.json();
           setDogs(dogs);
+          const zipCodes = dogs.map((dog) => dog.zip_code);
+          fetchLocations(zipCodes);
         }
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("Oops, something went wrong!");
+    }
+  };
+
+  const fetchFavorites = async () => {
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/dogs`, {
+        method: "POST",
+        body: JSON.stringify(favorite),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+      });
+      if (response.ok) {
+        setShowFavorites(true);
+        const dogs = await response.json();
+        setDogs(dogs);
+        const zipCodes = dogs.map((dog) => dog.zip_code);
+        fetchLocations(zipCodes);
+        nextPage.current = baseSearchURL;
+        prevPage.current = null;
+        setShowPrev(false);
+        setShowNext(false);
       }
     } catch (error) {
       console.error(error);
@@ -155,21 +217,40 @@ const FindDogs = () => {
       ) : !match ? (
         <main>
           {user && (
-            <div className="flex justify-between items-center gap-4">
+            <div className="flex justify-between items-center gap-4 max-md:flex-col">
               <h3 className="font-bold text-3xl">
-                Hey <span className="text-secondary">{`${user.name}, `}</span>
+                Hey <span className="text-secondary">{`${capitalizeWords(user.name)}, `}</span>
                 find your best buddy!
               </h3>
 
-              {favorite.length > 0 && (
-                <button
-                  type="button"
-                  onClick={findMatch}
-                  className="max-sm:text-sm  flex-shrink-0 ml-auto bg-secondary rounded px-4 py-2 font-medium duration-100 transition-colors text-sm"
-                >
-                  Find Match
-                </button>
-              )}
+              <div className="flex-shrink-0 ml-auto flex items-center gap-3">
+                {showFavorites && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowFavorites(false);
+                      fetchDogs();
+                    }}
+                    className="max-sm:text-sm text-sm"
+                  >
+                    View All
+                  </button>
+                )}
+                {!showFavorites && favorite.length > 0 && (
+                  <button type="button" onClick={() => fetchFavorites()} className="max-sm:text-sm text-sm">
+                    View Favorites
+                  </button>
+                )}
+                {favorite.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={findMatch}
+                    className="max-sm:text-sm  flex-shrink-0 ml-auto bg-secondary rounded px-4 py-2 font-medium duration-100 transition-colors text-sm"
+                  >
+                    Find Match
+                  </button>
+                )}
+              </div>
             </div>
           )}
 
@@ -208,8 +289,8 @@ const FindDogs = () => {
             </div>
           )}
 
-          <div className="flex gap-4 mt-10 items-start">
-            <div className="rounded p-4 bg-gray-200 flex flex-col gap-2 max-w-[18rem] w-full">
+          <div className="flex max-md:flex-col gap-4 mt-10 items-start">
+            <div className="rounded p-4 bg-gray-200 flex flex-col gap-2  w-full md:max-w-[18rem]">
               <p className="font-semibold">Filters</p>
               <label htmlFor={"breeds"} className="text-sm font-medium">
                 Breeds
@@ -316,12 +397,14 @@ const FindDogs = () => {
             </div>
 
             <div className="flex flex-col items-center w-full">
-              <div className="grid max-xl:grid-cols-3 grid-cols-4 gap-4 w-full">
+              <div className="grid max-sm:grid-cols-1 max-lg:grid-cols-2 max-xl:grid-cols-3 grid-cols-4 gap-4 w-full">
                 {dogs &&
                   dogs.map((d, i) => {
+                    const location = locations?.find((l) => l?.zip_code === d.zip_code);
+
                     return (
                       <div key={i} className="relative group flex flex-col mb-auto">
-                        <div className="relative w-full h-[200px] overflow-hidden rounded-xl flex items-center justify-center">
+                        <div className="relative w-full h-[200px] overflow-hidden rounded flex items-center justify-center">
                           <Image
                             src={d.img}
                             alt={d.name}
@@ -354,24 +437,23 @@ const FindDogs = () => {
                             </button>
                           )}
                         </div>
-                        <div className="flex flex-col items-start mt-2 gap-1 text-xs">
-                          <div className="flex justify-between items-start gap-1 w-full">
-                            <p>
-                              <span className={`font-semibold`}>{d.name}</span>
-                              {", "}
-                              {d.breed}
+
+                        <div className="flex flex-col items-start mt-2 gap-1 text-gray-800">
+                          <p className="font-bold flex gap-1 items-center text-sm">{d.name}</p>
+                          <p className=" flex gap-1 items-center text-xs">
+                            <Dog size={12} color="gray" />
+                            {d.breed}
+                          </p>
+                          {location && (
+                            <p className=" flex gap-1 items-center text-xs">
+                              <MapPin size={12} color="gray" />
+                              {location.state}, {location.city}, {d.zip_code}
                             </p>
-                            <p>
-                              <span className="font-semibold">Zip Code</span>
-                              {": "}
-                              {d.zip_code}
-                            </p>
-                            <p className="flex-shrink-0">
-                              <span className="font-semibold">Age</span>
-                              {": "}
-                              {d.age}
-                            </p>
-                          </div>
+                          )}
+                          <p className=" flex gap-1 items-center text-xs">
+                            <Calendar size={12} color="gray" />
+                            {d.age} {d.age > 1 ? "years old" : "year old"}
+                          </p>
                         </div>
                       </div>
                     );
@@ -436,7 +518,6 @@ const FindDogs = () => {
           <button
             className="ml-auto mt-4 max-sm:text-sm  flex-shrink-0 bg-secondary rounded px-4 py-2 font-medium duration-100 transition-colors text-sm"
             onClick={() => {
-              setFavorite([]);
               setMatch();
             }}
           >

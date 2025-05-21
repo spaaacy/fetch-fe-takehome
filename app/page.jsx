@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 import FadeIn from "@/components/FadeIn";
 import Footer from "@/components/Footer";
@@ -10,6 +10,10 @@ import "slick-carousel/slick/slick-theme.css";
 import Slider from "react-slick";
 import NextArrow from "@/components/NextArrow";
 import PrevArrow from "@/components/PrevArrow";
+import { Noto_Serif } from "next/font/google";
+const notoSerif = Noto_Serif({
+  subsets: ["latin"],
+});
 
 export default function Home() {
   return (
@@ -122,27 +126,40 @@ export default function Home() {
           className="flex flex-col gap-8 my-20 max-w-[1440px] mx-auto px-10"
         >
           <h3 className="w-full text-6xl max-md:text-4xl font-medium text-center">Success Stories</h3>
-          <div className="grid lg:grid-cols-2 items-start justify-center max-lg:grid-cols-1 gap-4">
+          <div className="grid lg:grid-cols-1 items-start justify-center max-lg:grid-cols-1 gap-4">
             {testimonials.map((t, i) => {
               return (
-                <div
+                <FadeIn
                   key={i}
-                  className="border-2 border-black rounded-xl px-6 py-6 h-full md:h-80 flex flex-col justify-between"
+                  className="border-2 border-black rounded-xl px-6 py-6 h-full md:h-60 flex flex-col justify-between"
                 >
-                  <p className="text-lg text-gray-800 leading-loose">{t.desc}</p>
-                  <hr className="border-0 h-[1px] bg-neutral-300 mt-auto mb-4" />
+                  <p className=" text-gray-800 leading-loose">{t.desc}</p>
+                  <hr className="border-0 h-[1px] bg-neutral-300 my-4" />
                   <div className="flex justify-between items-center">
                     <div>
                       <p className="font-medium">{t.name}</p>
                       <p className="font-light">{t.title}</p>
                     </div>
-                    <div className="h-20 w-20 relative">
-                      <Image src={t.image} alt={t.name} fill={true} className="rounded-full object-cover" />
+                    <div className="rounded-full h-20 w-20 relative overflow-clip flex-shrink-0">
+                      <Image src={t.image} alt={t.name} width={80} height={80} className="object-contain" />
                     </div>
                   </div>
-                </div>
+                </FadeIn>
               );
             })}
+          </div>
+        </FadeIn>
+
+        <FadeIn className={"px-10 w-full max-w-[1440px] lg:mt-10 lg:mb-20 max-lg:mb-10"}>
+          <div className="relative w-full mx-auto h-[26rem] rounded-xl overflow-hidden">
+            <Image src={"/petting_dog.png"} fill={true} alt="petting" className="object-cover" />
+            <div className="absolute inset-0 bg-black opacity-40"></div>
+            <div className="absolute inset-0 flex flex-col gap-10 items-center justify-center text-center px-8">
+              <p className={`${notoSerif.className} text-white text-7xl max-md:text-4xl`}>Find your dog's next home</p>
+              <Link href={"/dogs"} className={`${notoSerif.className} bg-white font-bold px-4 py-2 rounded hover:bg-neutral-100 transition-colors duration-100`}>
+                Adopt Now
+              </Link>
+            </div>
           </div>
         </FadeIn>
       </div>
