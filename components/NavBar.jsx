@@ -30,21 +30,21 @@ const NavBar = () => {
         <>
           <div className="ml-20 gap-4 items-center flex">
             <Link href={loggedIn ? "/dogs" : "/login"} className="font-medium">
-              Browse Dogs
+              Adopt Now
             </Link>
           </div>
           {loggedIn ? (
             <button
               onClick={signOut}
               type="button"
-              className="ml-auto bg-primary rounded px-4 py-2 font-medium text-white hover:bg-secondary hover:text-primary duration-100 transition-colors text-sm"
+              className="ml-auto bg-primary rounded px-4 py-2 font-medium text-white hover:bg-purple-900 duration-100 transition-colors text-sm"
             >
               Sign Out
             </button>
           ) : (
             <Link
               href={"/login"}
-              className="ml-auto bg-primary rounded px-4 py-2 font-medium text-white hover:bg-secondary hover:text-primary duration-100 transition-colors text-sm"
+              className="ml-auto bg-primary rounded px-4 py-2 font-medium text-white hover:bg-purple-900 duration-100 transition-colors text-sm"
             >
               Login
             </Link>
