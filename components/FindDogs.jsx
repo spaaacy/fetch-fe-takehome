@@ -8,7 +8,7 @@ import toast, { Toaster } from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import Loader from "./Loader";
 import Image from "next/image";
-import { ArrowLeftCircle, ArrowRightCircle, Heart, Trash2 } from "lucide-react";
+import { ArrowDown, ArrowLeftCircle, ArrowRightCircle, ArrowUp, Heart, Trash2 } from "lucide-react";
 import FadeIn from "./FadeIn";
 
 const FindDogs = () => {
@@ -33,6 +33,10 @@ const FindDogs = () => {
   const [minAge, setMinAge] = useState(0);
   const [maxAge, setMaxAge] = useState(30);
   const [selectedBreeds, setSelectedBreeds] = useState([]);
+  const [sorting, setSorting] = useState("name");
+  const sortingRef = useRef("name");
+  const [ascending, setAscending] = useState();
+  const ascendingRef = useRef(true);
 
   useEffect(() => {
     if (authLoading) return;
@@ -44,11 +48,11 @@ const FindDogs = () => {
       fetchDogs();
       fetchBreeds();
     }
-  }, [loading, loggedIn, dogs, breeds]);
+  }, [loggedIn, dogs, breeds]);
 
   const findMatch = async () => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/dogs/match`, {
+      let response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/dogs/match`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -58,9 +62,18 @@ const FindDogs = () => {
       });
       if (response.ok) {
         const { match } = await response.json();
-        const matchedDog = dogs.find((dog) => dog.id === match);
-        console.log(dogs);
-        setMatch(matchedDog);
+        response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/dogs`, {
+          method: "POST",
+          body: JSON.stringify([match]),
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+        });
+        if (response.ok) {
+          const dogs = await response.json();
+          setMatch(dogs[0]);
+        }
       }
     } catch (error) {
       console.error(error);
@@ -115,6 +128,25 @@ const FindDogs = () => {
     }
   };
 
+  const refetchDogs = async () => {
+    setLoading(true);
+    nextPage.current = `${baseSearchURL}${
+      zipCodes.length > 0 ? zipCodes.map((zip) => `&zipCodes=${zip}`).join("") : ""
+    }${minAge ? `&ageMin=${minAge}` : ""}${maxAge ? `&ageMax=${maxAge}` : ""}
+
+    
+
+    ${
+      selectedBreeds.length > 0
+        ? selectedBreeds.map((breed) => `&breeds=${breed}`).join("")
+        : `&sort=${sortingRef.current}:${ascendingRef.current ? "asc" : "desc"}`
+    }`;
+
+    setShowNext(baseSearchURL);
+    await fetchDogs();
+    setLoading(false);
+  };
+
   return (
     <div className="flex flex-col min-h-screen">
       <NavBar />
@@ -138,6 +170,41 @@ const FindDogs = () => {
                   Find Match
                 </button>
               )}
+            </div>
+          )}
+
+          {selectedBreeds.length === 0 && (
+            <div className="flex w-full justify-end items-center -mb-8 relative ">
+              <div className="flex gap-1 items-center">
+                <label htmlFor="sort" className="text-sm font-medium">
+                  Sort By
+                </label>
+                <select
+                  value={sorting}
+                  onChange={(e) => {
+                    setSorting(e.target.value);
+                    sortingRef.current = e.target.value;
+                    refetchDogs();
+                  }}
+                  id="sort"
+                  className="text-sm px-2 py-1 rounded bg-white"
+                >
+                  <option value="name">Name</option>
+                  <option value="age">Age</option>
+                  <option value="breed">Breed</option>
+                </select>
+                <button
+                  onClick={() => {
+                    setAscending(!ascendingRef.current);
+                    ascendingRef.current = !ascendingRef.current;
+                    refetchDogs();
+                  }}
+                  type="button"
+                  className="flex items-center text-xs"
+                >
+                  {ascending === true ? <ArrowUp className="ml-1 w-4 h-4" /> : <ArrowDown className="ml-1 w-4 h-4" />}
+                </button>
+              </div>
             </div>
           )}
 
@@ -240,17 +307,7 @@ const FindDogs = () => {
               </div>
 
               <button
-                onClick={() => {
-                  setLoading(true);
-                  nextPage.current = `${baseSearchURL}${
-                    zipCodes.length > 0 ? zipCodes.map((zip) => `&zipCodes=${zip}`).join("") : ""
-                  }${minAge ? `&ageMin=${minAge}` : ""}${maxAge ? `&ageMax=${maxAge}` : ""}${
-                    selectedBreeds.length > 0 ? selectedBreeds.map((breed) => `&breeds=${breed}`).join("") : ""
-                  }`;
-                  setShowNext(baseSearchURL);
-                  fetchDogs();
-                  setLoading(false);
-                }}
+                onClick={() => refetchDogs()}
                 type="button"
                 className="bg-primary px-4 py-2 rounded text-white ml-auto text-xs"
               >
@@ -263,7 +320,7 @@ const FindDogs = () => {
                 {dogs &&
                   dogs.map((d, i) => {
                     return (
-                      <div key={i} className="relative group flex flex-col mt-auto">
+                      <div key={i} className="relative group flex flex-col mb-auto">
                         <div className="relative w-full h-[200px] overflow-hidden rounded-xl flex items-center justify-center">
                           <Image
                             src={d.img}

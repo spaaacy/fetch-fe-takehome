@@ -46,7 +46,7 @@ export default function Home() {
           </div>
         </FadeIn>
 
-        <FadeIn className="my-10 w-full">
+        <FadeIn className="my-20 w-full">
           <h3 className="text-center font-bold text-4xl mb-10">Checkout Our Dogs!</h3>
           <Slider
             infinite={true}
@@ -119,7 +119,7 @@ export default function Home() {
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true }}
-          className="flex flex-col gap-8 my-10 max-w-[1440px] mx-auto px-10"
+          className="flex flex-col gap-8 my-20 max-w-[1440px] mx-auto px-10"
         >
           <h3 className="w-full text-6xl max-md:text-4xl font-medium text-center">Success Stories</h3>
           <div className="grid lg:grid-cols-2 items-start justify-center max-lg:grid-cols-1 gap-4">
