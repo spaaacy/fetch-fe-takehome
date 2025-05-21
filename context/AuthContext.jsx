@@ -1,11 +1,13 @@
-'use client'
+"use client";
 
 import { createContext, useContext, useEffect, useState } from "react";
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
+  const [loading, setLoading] = useState(true);
   const [loggedIn, setLoggedIn] = useState();
+  const [user, setUser] = useState();
 
   useEffect(() => {
     const checkSession = async () => {
@@ -13,16 +15,20 @@ export const AuthProvider = ({ children }) => {
         credentials: "include",
       });
       if (response.ok) {
-        console.log(await response.json())
-        setLoggedIn({ name: "Restored", email: "session@example.com" });
+        const user = JSON.parse(localStorage.getItem("user"));
+        setUser(user);
+        setLoggedIn(user);
       } else {
         setLoggedIn(null);
       }
+      setLoading(false);
     };
     checkSession();
   }, []);
 
-  return <AuthContext.Provider value={{ loggedIn, setLoggedIn }}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={{ loading, loggedIn, setLoggedIn, user, setUser }}>{children}</AuthContext.Provider>
+  );
 };
 
 export const useAuth = () => {

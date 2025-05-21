@@ -9,7 +9,7 @@ import { useForm } from "react-hook-form";
 import toast, { Toaster } from "react-hot-toast";
 
 const Login = () => {
-  const { loggedIn, setLoggedIn } = useAuth();
+  const { loggedIn, setLoggedIn, setUser } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
@@ -25,16 +25,19 @@ const Login = () => {
   const onSubmit = async (data, e) => {
     e.preventDefault();
     try {
+      const user = { name: data.name, email: data.email };
       const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ email: data.email, name: data.name }),
+        body: JSON.stringify(user),
         credentials: "include",
       });
       if (response.status === 200) {
         setLoggedIn(true);
+        localStorage.setItem("user", JSON.stringify(user));
+        setUser(user);
         router.push("/");
       }
     } catch (error) {

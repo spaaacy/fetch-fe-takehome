@@ -5,6 +5,7 @@
     --background: #ffffff;
     --foreground: #171717;
     --primary: #300d38;
+    --secondary: #FBA919;
   }
 
   body {
@@ -18,7 +19,7 @@
     margin-left: auto;
     margin-right: auto;
     width: 100%;
-    max-width: 1360px;
+    max-width: 1480px;
     padding-top: 1rem;
     padding-bottom: 1rem;
     padding-left: 2rem;
@@ -34,6 +35,7 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-primary: var(--primary);
+  --color-secondary: var(--secondary);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
