@@ -9,8 +9,7 @@ import { useRouter } from "next/navigation";
 import Loader from "./Loader";
 import Image from "next/image";
 import { ArrowLeftCircle, ArrowRightCircle, Heart, Trash2 } from "lucide-react";
-import { Sour_Gummy } from "next/font/google";
-const ballet = Sour_Gummy({ subsets: ["latin"] });
+import FadeIn from "./FadeIn";
 
 const FindDogs = () => {
   const { loggedIn, user, loading: authLoading } = useAuth();
@@ -26,6 +25,7 @@ const FindDogs = () => {
   const [showNext, setShowNext] = useState();
   const [showPrev, setShowPrev] = useState();
   const [favorite, setFavorite] = useState([]);
+  const [match, setMatch] = useState();
 
   // Inputs
   const [zipInput, setZipInput] = useState("");
@@ -45,6 +45,28 @@ const FindDogs = () => {
       fetchBreeds();
     }
   }, [loading, loggedIn, dogs, breeds]);
+
+  const findMatch = async () => {
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/dogs/match`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(favorite),
+        credentials: "include",
+      });
+      if (response.ok) {
+        const { match } = await response.json();
+        const matchedDog = dogs.find((dog) => dog.id === match);
+        console.log(dogs);
+        setMatch(matchedDog);
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("Oops, something went wrong!");
+    }
+  };
 
   const fetchBreeds = async () => {
     try {
@@ -98,13 +120,25 @@ const FindDogs = () => {
       <NavBar />
       {loading ? (
         <Loader />
-      ) : (
+      ) : !match ? (
         <main>
           {user && (
-            <h3 className="font-bold text-3xl">
-              Hey <span className="text-secondary">{`${user.name}, `}</span>
-              find your best buddy!
-            </h3>
+            <div className="flex justify-between items-center gap-4">
+              <h3 className="font-bold text-3xl">
+                Hey <span className="text-secondary">{`${user.name}, `}</span>
+                find your best buddy!
+              </h3>
+
+              {favorite.length > 0 && (
+                <button
+                  type="button"
+                  onClick={findMatch}
+                  className="max-sm:text-sm  flex-shrink-0 ml-auto bg-secondary rounded px-4 py-2 font-medium duration-100 transition-colors text-sm"
+                >
+                  Find Match
+                </button>
+              )}
+            </div>
           )}
 
           <div className="flex gap-4 mt-10 items-start">
@@ -225,16 +259,11 @@ const FindDogs = () => {
             </div>
 
             <div className="flex flex-col items-center w-full">
-              <div className="grid grid-cols-5 gap-4 w-full">
+              <div className="grid max-xl:grid-cols-3 grid-cols-4 gap-4 w-full">
                 {dogs &&
                   dogs.map((d, i) => {
                     return (
                       <div key={i} className="relative group flex flex-col mt-auto">
-                        <p className={`${ballet.className}`}>
-                          <span className={`font-semibold`}>{d.name}</span>
-                          {", "}
-                          {d.breed}
-                        </p>
                         <div className="relative w-full h-[200px] overflow-hidden rounded-xl flex items-center justify-center">
                           <Image
                             src={d.img}
@@ -242,28 +271,39 @@ const FindDogs = () => {
                             className="object-cover h-full w-full transform transition-transform duration-300"
                             fill={true}
                           />
-                          <button
-                            onClick={() => {
-                              setFavorite((prev) => {
-                                if (prev.includes(d.id)) {
-                                  return prev.filter((id) => id !== d.id);
-                                } else {
+                          {!favorite.includes(d.id) ? (
+                            <button
+                              onClick={() => {
+                                setFavorite((prev) => {
                                   return [...prev, d.id];
-                                }
-                              });
-                            }}
-                            type="button"
-                            className="transition opacity-0 group-hover:opacity-60"
-                          >
-                            <Heart
-                              className={`${favorite.includes(d.id) ? "fill-red-500" : "fill-white"}`}
-                              color={`${favorite.includes(d.id) ? "red" : "white"}`}
-                              size={100}
-                            />
-                          </button>
+                                });
+                              }}
+                              type="button"
+                              className="transition opacity-0 group-hover:opacity-60"
+                            >
+                              <Heart className={"fill-white"} color={"white"} size={100} />
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => {
+                                setFavorite((prev) => {
+                                  return prev.filter((id) => id !== d.id);
+                                });
+                              }}
+                              type="button"
+                              className="absolute top-4 right-4"
+                            >
+                              <Heart className={"fill-red-500"} color={"red"} size={20} />
+                            </button>
+                          )}
                         </div>
                         <div className="flex flex-col items-start mt-2 gap-1 text-xs">
                           <div className="flex justify-between items-start gap-1 w-full">
+                            <p>
+                              <span className={`font-semibold`}>{d.name}</span>
+                              {", "}
+                              {d.breed}
+                            </p>
                             <p>
                               <span className="font-semibold">Zip Code</span>
                               {": "}
@@ -311,6 +351,41 @@ const FindDogs = () => {
             </div>
           </div>
         </main>
+      ) : (
+        <FadeIn className={"mx-auto flex flex-col"}>
+          <div className=" py-2 px-4 rounded-xl text-white gap-2 bg-primary flex flex-col items-center">
+            <h3 className="font-bold text-2xl">
+              Congrats! You've been matched with
+              <span className="text-secondary"> {match.name}!</span>
+            </h3>
+            <div className="relative group flex flex-col mt-auto">
+              <div className="relative w-[600px] h-[600px] overflow-hidden rounded-xl flex items-center justify-center">
+                <Image
+                  src={match.img}
+                  alt={match.name}
+                  className="object-cover h-full w-full transform transition-transform duration-300"
+                  fill={true}
+                />
+              </div>
+            </div>
+            <div className="flex justify-between w-full">
+              <p className="font-semibold">
+                {match.age} {match.age > 1 ? "years old" : "year old"}
+              </p>
+              <p className="font-semibold">{match.breed}</p>
+            </div>
+          </div>
+
+          <button
+            className="ml-auto mt-4 max-sm:text-sm  flex-shrink-0 bg-secondary rounded px-4 py-2 font-medium duration-100 transition-colors text-sm"
+            onClick={() => {
+              setFavorite([]);
+              setMatch();
+            }}
+          >
+            Restart
+          </button>
+        </FadeIn>
       )}
       <Footer />
       <Toaster />

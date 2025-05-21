@@ -22,13 +22,13 @@ const NavBar = () => {
   };
 
   return (
-    <nav className="mx-auto max-w-[82rem] px-10 py-8 flex items-center w-full">
+    <nav className="mx-auto max-w-[82rem] px-10 py-8 flex items-center w-full gap-4">
       <Link href={"/"}>
         <Image height={37} width={150} src="/logo.svg" alt="logo" />
       </Link>
       {pathname !== "/login" && (
         <>
-          <div className="ml-20 gap-4 items-center flex">
+          <div className="max-sm:text-sm max-lg:ml-10 lg:ml-20 gap-4 items-center flex flex-shrink-0">
             <Link href={loggedIn ? "/dogs" : "/login"} className="font-medium">
               Adopt Now
             </Link>
@@ -37,14 +37,14 @@ const NavBar = () => {
             <button
               onClick={signOut}
               type="button"
-              className="ml-auto bg-primary rounded px-4 py-2 font-medium text-white hover:bg-purple-900 duration-100 transition-colors text-sm"
+              className="max-sm:text-sm  flex-shrink-0 ml-auto bg-primary rounded px-4 py-2 font-medium text-white hover:bg-purple-900 duration-100 transition-colors text-sm"
             >
               Sign Out
             </button>
           ) : (
             <Link
               href={"/login"}
-              className="ml-auto bg-primary rounded px-4 py-2 font-medium text-white hover:bg-purple-900 duration-100 transition-colors text-sm"
+              className="max-sm:text-sm  flex-shrink-0 ml-auto bg-primary rounded px-4 py-2 font-medium text-white hover:bg-purple-900 duration-100 transition-colors text-sm"
             >
               Login
             </Link>
