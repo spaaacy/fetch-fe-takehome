@@ -28,6 +28,9 @@ Before running the application, create a `.env.local` file in the root of your p
 NEXT_PUBLIC_BACKEND_URL=https://frontend-take-home-service.fetch.com
 ```
 
+## Demo
+Watch a short video demo of the project:
+https://www.youtube.com/watch?v=JiplgHabcbU
 
 ## Learn More
 
